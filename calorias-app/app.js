@@ -1,4 +1,7 @@
+import { firebaseConfig, isFirebaseConfigured } from "./firebase-config.js";
+
 const STORAGE_KEY = "calorias_app_v1";
+const GUEST_STORAGE_KEY = `${STORAGE_KEY}_guest`;
 const MAX_PHOTO_SIZE = 1400;
 const AI_PHOTO_SIZE = 1600;
 const JPEG_QUALITY = 0.78;
@@ -75,7 +78,15 @@ const cameraHelp = document.getElementById("camera-help");
 const photoLightbox = document.getElementById("photo-lightbox");
 const photoLightboxImg = document.getElementById("photo-lightbox-img");
 const closeLightboxBtn = document.getElementById("close-lightbox-btn");
+const authCard = document.getElementById("auth-card");
+const authAvatar = document.getElementById("auth-avatar");
+const authTitle = document.getElementById("auth-title");
+const authSubtitle = document.getElementById("auth-subtitle");
+const googleLoginBtn = document.getElementById("google-login-btn");
+const logoutBtn = document.getElementById("logout-btn");
 
+let currentUser = null;
+let auth = null;
 let data = loadData();
 let editingEntryId = null;
 let selectedDate = todayString();
@@ -89,6 +100,7 @@ datePicker.value = selectedDate;
 goalInput.value = data.goal;
 
 setupCameraUi();
+setupAuth();
 renderQuickAddButtons();
 render();
 
@@ -629,7 +641,7 @@ function loadImageFile(file) {
 
 function loadData() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(getActiveStorageKey());
     if (!raw) return defaultData();
     const parsed = JSON.parse(raw);
     return {
@@ -651,7 +663,121 @@ function defaultData() {
 }
 
 function saveData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  localStorage.setItem(getActiveStorageKey(), JSON.stringify(data));
+}
+
+function getActiveStorageKey() {
+  return currentUser?.uid ? `${STORAGE_KEY}_user_${currentUser.uid}` : GUEST_STORAGE_KEY;
+}
+
+function reloadUserData() {
+  data = loadData();
+  goalInput.value = data.goal;
+  clearEditingMode();
+  resetForm();
+  render();
+}
+
+async function setupAuth() {
+  if (!authCard || !googleLoginBtn || !logoutBtn) return;
+
+  if (!isFirebaseConfigured()) {
+    updateAuthUi(null, {
+      title: "Modo local",
+      subtitle: "Configura Firebase para activar cuentas Google.",
+      loginDisabled: true,
+    });
+    return;
+  }
+
+  try {
+    const [{ initializeApp }, authModule] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js"),
+    ]);
+    const {
+      browserLocalPersistence,
+      getAuth,
+      GoogleAuthProvider,
+      onAuthStateChanged,
+      setPersistence,
+      signInWithPopup,
+      signInWithRedirect,
+      signOut,
+    } = authModule;
+    const firebaseApp = initializeApp(firebaseConfig);
+    auth = getAuth(firebaseApp);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+
+    setPersistence(auth, browserLocalPersistence).catch(() => {
+      // La sesion aun puede funcionar aunque el navegador limite persistencia.
+    });
+
+    googleLoginBtn.addEventListener("click", async () => {
+      googleLoginBtn.disabled = true;
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        if (error?.code === "auth/popup-blocked") {
+          await signInWithRedirect(auth, provider);
+          return;
+        }
+        if (error?.code === "auth/popup-closed-by-user") {
+          googleLoginBtn.disabled = false;
+          return;
+        }
+        alert("No se pudo iniciar sesion con Google. Revisa la configuracion de Firebase.");
+        googleLoginBtn.disabled = false;
+      }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      updateAuthUi(user);
+      reloadUserData();
+    });
+  } catch {
+    updateAuthUi(null, {
+      title: "Google no configurado",
+      subtitle: "Revisa firebase-config.js y dominios autorizados en Firebase.",
+      loginDisabled: true,
+    });
+  }
+}
+
+function updateAuthUi(user, fallback = {}) {
+  if (!authTitle || !authSubtitle || !authAvatar || !googleLoginBtn || !logoutBtn) return;
+
+  if (user) {
+    const name = user.displayName || "Usuario";
+    authAvatar.textContent = name.slice(0, 1).toUpperCase();
+    if (user.photoURL) {
+      authAvatar.style.backgroundImage = `url("${user.photoURL}")`;
+      authAvatar.textContent = "";
+    } else {
+      authAvatar.style.removeProperty("background-image");
+    }
+    authTitle.textContent = name;
+    authSubtitle.textContent = user.email || "Sesion iniciada con Google";
+    googleLoginBtn.classList.add("hidden");
+    googleLoginBtn.disabled = false;
+    logoutBtn.classList.remove("hidden");
+    return;
+  }
+
+  authAvatar.textContent = "C";
+  authAvatar.style.removeProperty("background-image");
+  authTitle.textContent = fallback.title || "Modo local";
+  authSubtitle.textContent =
+    fallback.subtitle || "Inicia sesion con Google para usar tus datos en esta cuenta.";
+  googleLoginBtn.classList.remove("hidden");
+  googleLoginBtn.disabled = Boolean(fallback.loginDisabled);
+  logoutBtn.classList.add("hidden");
 }
 
 function createId() {

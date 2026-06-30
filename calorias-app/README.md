@@ -80,6 +80,26 @@ npx vercel dev
 
 Abre la URL que muestra (normalmente `http://localhost:3000`). Necesitas la variable `GROQ_API_KEY` en un archivo `.env.local` o en el entorno.
 
+## Cuentas Google
+
+La app incluye soporte para iniciar sesion con Google usando Firebase Authentication.
+Cuando un usuario inicia sesion, sus comidas se guardan separadas por su ID de Google en este navegador.
+
+### Activar Google Login
+
+1. Entra a [Firebase Console](https://console.firebase.google.com/).
+2. Crea un proyecto o usa uno existente.
+3. Ve a **Authentication > Sign-in method**.
+4. Activa **Google** como proveedor.
+5. Ve a **Project settings > Your apps** y crea una app Web.
+6. Copia la configuracion `firebaseConfig`.
+7. Pega esos valores en `firebase-config.js`.
+8. En **Authentication > Settings > Authorized domains**, agrega:
+   - `calorias-app-murex.vercel.app`
+   - tu dominio personalizado, si luego usas uno.
+
+Despues haz commit, push y redeploy en Vercel.
+
 ## Camara
 
 - **Abrir camara**: usa la camara trasera en movil (si esta disponible).

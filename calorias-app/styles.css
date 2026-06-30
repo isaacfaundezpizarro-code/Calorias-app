@@ -131,6 +131,78 @@ body::before {
   line-height: 1.35;
 }
 
+.auth-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 620px);
+  margin-top: 18px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.13);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px);
+}
+
+.auth-card__identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-card__identity strong,
+.auth-card__identity small {
+  display: block;
+}
+
+.auth-card__identity strong {
+  color: #ffffff;
+  font-size: 0.98rem;
+}
+
+.auth-card__identity small {
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.auth-card__avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #065f46;
+  background: #ffffff center / cover no-repeat;
+  font-weight: 900;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+}
+
+.auth-card__actions {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 8px;
+}
+
+.auth-card__login,
+.auth-card__logout {
+  min-height: 42px;
+  white-space: nowrap;
+}
+
+.auth-card__login {
+  color: #065f46;
+  background: #ffffff;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
+}
+
 .ios-install-banner,
 .panel {
   animation: rise-in 0.55s ease both;
@@ -944,6 +1016,17 @@ button.danger {
 
   .app__header::after {
     display: none;
+  }
+
+  .auth-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .auth-card__actions,
+  .auth-card__login,
+  .auth-card__logout {
+    width: 100%;
   }
 
   .camera-panel__actions,

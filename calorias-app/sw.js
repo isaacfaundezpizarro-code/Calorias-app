@@ -1,9 +1,10 @@
-const CACHE_NAME = "caloria-app-v7";
+const CACHE_NAME = "caloria-app-v8";
 const ASSETS = [
   "./",
   "./index.html",
   "./app.js",
   "./styles.css",
+  "./firebase-config.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",

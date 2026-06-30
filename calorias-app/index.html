@@ -24,6 +24,19 @@
       <header class="app__header">
         <h1>CalorIA</h1>
         <p>Registra tus comidas y estima calorias con IA</p>
+        <div id="auth-card" class="auth-card">
+          <div class="auth-card__identity">
+            <span id="auth-avatar" class="auth-card__avatar" aria-hidden="true">C</span>
+            <div>
+              <strong id="auth-title">Modo local</strong>
+              <small id="auth-subtitle">Inicia sesion con Google para separar tus datos por usuario.</small>
+            </div>
+          </div>
+          <div class="auth-card__actions">
+            <button id="google-login-btn" type="button" class="auth-card__login">Entrar con Google</button>
+            <button id="logout-btn" type="button" class="auth-card__logout ghost hidden">Salir</button>
+          </div>
+        </div>
       </header>
 
       <section class="panel panel--summary">
@@ -213,6 +226,6 @@
       </li>
     </template>
 
-    <script src="./app.js"></script>
+    <script type="module" src="./app.js"></script>
   </body>
 </html>
