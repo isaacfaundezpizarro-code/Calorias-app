@@ -1,4 +1,4 @@
-const CACHE_NAME = "caloria-app-v6";
+const CACHE_NAME = "caloria-app-v7";
 const ASSETS = [
   "./",
   "./index.html",
