@@ -84,6 +84,16 @@ const authTitle = document.getElementById("auth-title");
 const authSubtitle = document.getElementById("auth-subtitle");
 const googleLoginBtn = document.getElementById("google-login-btn");
 const logoutBtn = document.getElementById("logout-btn");
+const dashboardPage = document.getElementById("dashboard-page");
+const userPage = document.getElementById("user-page");
+const navDashboard = document.getElementById("nav-dashboard");
+const navUser = document.getElementById("nav-user");
+const userPageAvatar = document.getElementById("user-page-avatar");
+const userPageName = document.getElementById("user-page-name");
+const userPageEmail = document.getElementById("user-page-email");
+const userPageMode = document.getElementById("user-page-mode");
+const userPageGoal = document.getElementById("user-page-goal");
+const userPageProteinGoal = document.getElementById("user-page-protein-goal");
 const settingsAccountBadge = document.getElementById("settings-account-badge");
 const settingDisplayName = document.getElementById("setting-display-name");
 const settingProteinGoal = document.getElementById("setting-protein-goal");
@@ -110,6 +120,7 @@ goalInput.value = data.goal;
 
 setupCameraUi();
 setupAuth();
+setupPageNavigation();
 setupSettingsUi();
 applySettings();
 syncSettingsForm();
@@ -375,6 +386,7 @@ function render() {
   statRemaining.classList.toggle("over-goal", remaining < 0);
   progressRingFill.style.strokeDashoffset = `${327 - (327 * Math.min(percent, 100)) / 100}`;
   progressRingFill.classList.toggle("over-goal", percent > 100);
+  updateUserPage();
 
   foodList.innerHTML = "";
   filtered.forEach((entry) => {
@@ -727,6 +739,29 @@ function reloadUserData() {
   render();
 }
 
+function setupPageNavigation() {
+  navDashboard?.addEventListener("click", () => setActivePage("dashboard"));
+  navUser?.addEventListener("click", () => setActivePage("user"));
+  window.addEventListener("hashchange", () => {
+    setActivePage(window.location.hash === "#usuario" ? "user" : "dashboard", false);
+  });
+  setActivePage(window.location.hash === "#usuario" ? "user" : "dashboard", false);
+}
+
+function setActivePage(page, updateHash = true) {
+  const showUser = page === "user";
+  dashboardPage?.classList.toggle("hidden", showUser);
+  userPage?.classList.toggle("hidden", !showUser);
+  navDashboard?.classList.toggle("active", !showUser);
+  navUser?.classList.toggle("active", showUser);
+  navDashboard?.setAttribute("aria-current", showUser ? "false" : "page");
+  navUser?.setAttribute("aria-current", showUser ? "page" : "false");
+
+  if (updateHash) {
+    history.replaceState(null, "", showUser ? "#usuario" : window.location.pathname);
+  }
+}
+
 function setupSettingsUi() {
   if (!saveSettingsBtn) return;
 
@@ -800,6 +835,7 @@ function syncSettingsForm() {
   if (settingsAccountBadge) {
     settingsAccountBadge.textContent = currentUser?.email || "Modo local";
   }
+  updateUserPage();
 }
 
 function applySettings() {
@@ -810,6 +846,27 @@ function applySettings() {
 
 function maybeAnalyzePhotoAutomatically() {
   if (data.settings?.autoAnalyze !== false) analyzePhotoWithAi();
+}
+
+function updateUserPage() {
+  if (!userPageName) return;
+  const localName = data.settings?.displayName?.trim();
+  const userName = currentUser?.displayName || localName || "Modo local";
+  const userEmail = currentUser?.email || "Sin cuenta Google conectada";
+  const avatarLetter = userName.slice(0, 1).toUpperCase();
+
+  userPageName.textContent = userName;
+  userPageEmail.textContent = userEmail;
+  userPageMode.textContent = currentUser ? "Cuenta Google conectada" : "Datos locales";
+  userPageGoal.textContent = `${formatNumber(data.goal)} kcal`;
+  userPageProteinGoal.textContent = `${formatNumber(data.settings?.proteinGoal || 0)} g`;
+  userPageAvatar.textContent = avatarLetter;
+  if (currentUser?.photoURL) {
+    userPageAvatar.style.backgroundImage = `url("${currentUser.photoURL}")`;
+    userPageAvatar.textContent = "";
+  } else {
+    userPageAvatar.style.removeProperty("background-image");
+  }
 }
 
 async function setupAuth() {

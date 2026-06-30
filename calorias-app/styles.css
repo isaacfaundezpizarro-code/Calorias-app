@@ -1268,6 +1268,36 @@ body::before {
   margin-top: 8px;
 }
 
+.app-nav {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+  padding: 6px;
+  width: min(100%, 300px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(14px);
+}
+
+.app-nav__button {
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.76);
+  box-shadow: none;
+}
+
+.app-nav__button.active {
+  color: var(--primary-dark);
+  background: #ffffff;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
+}
+
 .auth-card {
   width: 100%;
   margin-top: auto;
@@ -1302,6 +1332,14 @@ body::before {
   z-index: 1;
 }
 
+.app-page {
+  display: contents;
+}
+
+.app-page.hidden {
+  display: none;
+}
+
 .panel--summary {
   grid-column: 5 / -1;
 }
@@ -1324,6 +1362,14 @@ body::before {
 
 .panel--list {
   grid-column: 5 / -1;
+}
+
+.app-page--user .panel--user-profile {
+  grid-column: 5 / span 4;
+}
+
+.app-page--user .panel--settings {
+  grid-column: 9 / -1;
 }
 
 .panel--camera::before {
@@ -1456,6 +1502,74 @@ button:hover {
   flex: 1 1 150px;
 }
 
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.user-profile__avatar {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #ffffff;
+  background: var(--primary) center / cover no-repeat;
+  font-size: 1.55rem;
+  font-weight: 950;
+  box-shadow: 0 14px 28px rgba(15, 159, 117, 0.22);
+}
+
+.user-profile strong,
+.user-profile small {
+  display: block;
+}
+
+.user-profile strong {
+  font-size: 1.15rem;
+}
+
+.user-profile small {
+  margin-top: 4px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.user-facts {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.user-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.user-facts div:last-child {
+  border-bottom: 0;
+}
+
+.user-facts span {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.user-facts strong {
+  text-align: right;
+}
+
 .food-card {
   animation: food-card-in 0.38s cubic-bezier(0.2, 0.85, 0.2, 1.1) both;
 }
@@ -1510,6 +1624,11 @@ button:hover {
     grid-column: 4 / -1;
   }
 
+  .app-page--user .panel--user-profile,
+  .app-page--user .panel--settings {
+    grid-column: 4 / -1;
+  }
+
   .summary__stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1523,6 +1642,7 @@ button:hover {
   .app__header,
   .panel--summary,
   .panel--settings,
+  .panel--user-profile,
   .panel--camera,
   .panel--form,
   .panel--filters,
@@ -1548,5 +1668,9 @@ button:hover {
 
   .settings-badge {
     max-width: 100%;
+  }
+
+  .app-nav {
+    width: 100%;
   }
 }
