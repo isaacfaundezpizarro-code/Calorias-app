@@ -1,10 +1,9 @@
-const CACHE_NAME = "caloria-app-v8";
+const CACHE_NAME = "caloria-app-v9";
 const ASSETS = [
   "./",
   "./index.html",
   "./app.js",
   "./styles.css",
-  "./firebase-config.js",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -27,6 +26,11 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
+  if (event.request.url.endsWith("/firebase-config.js")) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cached) => {
