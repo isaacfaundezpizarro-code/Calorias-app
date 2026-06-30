@@ -1,6 +1,6 @@
-# Contador de Calorias
+# CalorIA
 
-App web simple para registrar comidas y controlar tu meta diaria de calorias.
+App web simple para registrar comidas, guardar fotos y estimar calorias con IA.
 
 ## Como usar
 

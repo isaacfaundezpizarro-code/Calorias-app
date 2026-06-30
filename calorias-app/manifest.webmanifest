@@ -1,7 +1,7 @@
 {
-  "name": "Contador de Calorias",
-  "short_name": "Calorias",
-  "description": "Registra comidas, fotos y controla tu meta diaria de calorias.",
+  "name": "CalorIA",
+  "short_name": "CalorIA",
+  "description": "Registra comidas, fotos y estima calorias con IA.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "TU-IP-LOCAL")
 
 echo ""
-echo "Contador de Calorias - servidor local"
+echo "CalorIA - servidor local"
 echo "-------------------------------------"
 echo "En este Mac:     http://localhost:8080"
 echo "En tu iPhone:    http://${IP}:8080"
