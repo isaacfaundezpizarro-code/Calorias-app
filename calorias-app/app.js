@@ -84,6 +84,15 @@ const authTitle = document.getElementById("auth-title");
 const authSubtitle = document.getElementById("auth-subtitle");
 const googleLoginBtn = document.getElementById("google-login-btn");
 const logoutBtn = document.getElementById("logout-btn");
+const settingsAccountBadge = document.getElementById("settings-account-badge");
+const settingDisplayName = document.getElementById("setting-display-name");
+const settingProteinGoal = document.getElementById("setting-protein-goal");
+const settingTheme = document.getElementById("setting-theme");
+const settingAutoAnalyze = document.getElementById("setting-auto-analyze");
+const settingReducedMotion = document.getElementById("setting-reduced-motion");
+const saveSettingsBtn = document.getElementById("save-settings-btn");
+const exportDataBtn = document.getElementById("export-data-btn");
+const resetDataBtn = document.getElementById("reset-data-btn");
 
 let currentUser = null;
 let auth = null;
@@ -101,6 +110,9 @@ goalInput.value = data.goal;
 
 setupCameraUi();
 setupAuth();
+setupSettingsUi();
+applySettings();
+syncSettingsForm();
 renderQuickAddButtons();
 render();
 
@@ -198,7 +210,7 @@ photoFileInput.addEventListener("change", async (event) => {
     pendingPhoto = loaded.storage;
     pendingPhotoForAi = loaded.ai;
     updatePhotoPreview();
-    analyzePhotoWithAi();
+    maybeAnalyzePhotoAutomatically();
   } catch {
     alert("No se pudo cargar la imagen. Intenta con otro archivo.");
   }
@@ -215,7 +227,7 @@ captureBtn.addEventListener("click", () => {
   pendingPhoto = captureFromVideo();
   closeCameraModal();
   updatePhotoPreview();
-  analyzePhotoWithAi();
+  maybeAnalyzePhotoAutomatically();
 });
 
 switchCameraBtn.addEventListener("click", () => {
@@ -242,6 +254,7 @@ saveGoalBtn.addEventListener("click", () => {
   }
   data.goal = goal;
   saveData();
+  syncSettingsForm();
   render();
 });
 
@@ -346,6 +359,7 @@ function render() {
   const filtered = getFilteredEntries();
   const consumed = dayEntries.reduce((sum, entry) => sum + entry.calories, 0);
   const proteinTotal = dayEntries.reduce((sum, entry) => sum + (entry.protein || 0), 0);
+  const proteinGoal = Number(data.settings?.proteinGoal) || 0;
   const goal = data.goal;
   const remaining = goal - consumed;
   const percent = goal > 0 ? Math.min(Math.round((consumed / goal) * 100), 999) : 0;
@@ -353,7 +367,9 @@ function render() {
   statConsumed.textContent = formatNumber(consumed);
   statGoal.textContent = formatNumber(goal);
   statRemaining.textContent = formatNumber(remaining);
-  statProtein.textContent = formatNumber(proteinTotal);
+  statProtein.textContent = proteinGoal
+    ? `${formatNumber(proteinTotal)} / ${formatNumber(proteinGoal)}`
+    : formatNumber(proteinTotal);
   progressPercent.textContent = `${percent}%`;
 
   statRemaining.classList.toggle("over-goal", remaining < 0);
@@ -646,6 +662,7 @@ function loadData() {
     const parsed = JSON.parse(raw);
     return {
       goal: Number(parsed.goal) || 2000,
+      settings: normalizeSettings(parsed.settings),
       entries: Array.isArray(parsed.entries)
         ? parsed.entries.map((entry) => ({
             ...entry,
@@ -659,10 +676,40 @@ function loadData() {
 }
 
 function defaultData() {
-  return { goal: 2000, entries: [] };
+  return { goal: 2000, settings: defaultSettings(), entries: [] };
+}
+
+function defaultSettings() {
+  return {
+    displayName: "",
+    proteinGoal: 120,
+    theme: "mint",
+    autoAnalyze: true,
+    reducedMotion: false,
+  };
+}
+
+function normalizeSettings(settings = {}) {
+  const defaults = defaultSettings();
+  const theme = ["mint", "ocean", "graphite"].includes(settings.theme)
+    ? settings.theme
+    : defaults.theme;
+
+  return {
+    displayName: typeof settings.displayName === "string" ? settings.displayName.slice(0, 40) : "",
+    proteinGoal: Number.isFinite(Number(settings.proteinGoal))
+      ? Math.min(Math.max(Number(settings.proteinGoal), 0), 400)
+      : defaults.proteinGoal,
+    theme,
+    autoAnalyze:
+      typeof settings.autoAnalyze === "boolean" ? settings.autoAnalyze : defaults.autoAnalyze,
+    reducedMotion:
+      typeof settings.reducedMotion === "boolean" ? settings.reducedMotion : defaults.reducedMotion,
+  };
 }
 
 function saveData() {
+  data.settings = normalizeSettings(data.settings);
   localStorage.setItem(getActiveStorageKey(), JSON.stringify(data));
 }
 
@@ -673,9 +720,96 @@ function getActiveStorageKey() {
 function reloadUserData() {
   data = loadData();
   goalInput.value = data.goal;
+  applySettings();
+  syncSettingsForm();
   clearEditingMode();
   resetForm();
   render();
+}
+
+function setupSettingsUi() {
+  if (!saveSettingsBtn) return;
+
+  saveSettingsBtn.addEventListener("click", () => {
+    const proteinGoal = Number(settingProteinGoal.value);
+    data.settings = normalizeSettings({
+      displayName: settingDisplayName.value.trim(),
+      proteinGoal: Number.isFinite(proteinGoal) ? proteinGoal : defaultSettings().proteinGoal,
+      theme: settingTheme.value,
+      autoAnalyze: settingAutoAnalyze.checked,
+      reducedMotion: settingReducedMotion.checked,
+    });
+    saveData();
+    applySettings();
+    syncSettingsForm();
+    updateAuthUi(currentUser);
+    render();
+    saveSettingsBtn.textContent = "Guardado";
+    window.setTimeout(() => {
+      saveSettingsBtn.textContent = "Guardar configuracion";
+    }, 1400);
+  });
+
+  settingTheme?.addEventListener("change", () => {
+    data.settings = normalizeSettings({ ...data.settings, theme: settingTheme.value });
+    saveData();
+    applySettings();
+  });
+
+  settingReducedMotion?.addEventListener("change", () => {
+    data.settings = normalizeSettings({
+      ...data.settings,
+      reducedMotion: settingReducedMotion.checked,
+    });
+    saveData();
+    applySettings();
+  });
+
+  exportDataBtn?.addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `caloria-${todayString()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+
+  resetDataBtn?.addEventListener("click", () => {
+    const confirmed = window.confirm("Esto borrara las comidas y configuracion guardadas en este dispositivo.");
+    if (!confirmed) return;
+    data = defaultData();
+    goalInput.value = data.goal;
+    saveData();
+    applySettings();
+    syncSettingsForm();
+    clearEditingMode();
+    resetForm();
+    render();
+  });
+}
+
+function syncSettingsForm() {
+  if (!settingDisplayName) return;
+  const settings = normalizeSettings(data.settings);
+  settingDisplayName.value = settings.displayName;
+  settingProteinGoal.value = settings.proteinGoal;
+  settingTheme.value = settings.theme;
+  settingAutoAnalyze.checked = settings.autoAnalyze;
+  settingReducedMotion.checked = settings.reducedMotion;
+  if (settingsAccountBadge) {
+    settingsAccountBadge.textContent = currentUser?.email || "Modo local";
+  }
+}
+
+function applySettings() {
+  const settings = normalizeSettings(data.settings);
+  document.documentElement.dataset.theme = settings.theme;
+  document.documentElement.classList.toggle("reduce-motion", settings.reducedMotion);
+}
+
+function maybeAnalyzePhotoAutomatically() {
+  if (data.settings?.autoAnalyze !== false) analyzePhotoWithAi();
 }
 
 async function setupAuth() {
@@ -772,7 +906,9 @@ function updateAuthUi(user, fallback = {}) {
 
   authAvatar.textContent = "C";
   authAvatar.style.removeProperty("background-image");
-  authTitle.textContent = fallback.title || "Modo local";
+  const localName = data.settings?.displayName?.trim();
+  authAvatar.textContent = localName ? localName.slice(0, 1).toUpperCase() : "C";
+  authTitle.textContent = fallback.title || localName || "Modo local";
   authSubtitle.textContent =
     fallback.subtitle || "Inicia sesion con Google para usar tus datos en esta cuenta.";
   googleLoginBtn.classList.remove("hidden");

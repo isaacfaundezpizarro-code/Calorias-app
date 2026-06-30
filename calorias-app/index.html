@@ -13,7 +13,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
     <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
-    <link rel="stylesheet" href="./styles.css?v=11" />
+    <link rel="stylesheet" href="./styles.css?v=12" />
   </head>
   <body>
     <main class="app">
@@ -33,8 +33,8 @@
         <p>Registra tus comidas y estima calorias con IA</p>
         <div class="hero-chips" aria-label="Funciones principales">
           <span>Vision IA</span>
-          <span>Google Login</span>
-          <span>PWA iPhone</span>
+          <span>Perfil propio</span>
+          <span>PWA lista</span>
         </div>
         <div id="auth-card" class="auth-card">
           <div class="auth-card__identity">
@@ -98,6 +98,54 @@
               <button id="save-goal-btn" type="button">Guardar meta</button>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section class="panel panel--settings" id="settings-panel">
+        <div class="settings-head">
+          <div>
+            <span class="section-kicker">Tu experiencia</span>
+            <h2 class="panel__title">Configuracion del usuario</h2>
+            <p>Personaliza metas, colores, animaciones y como trabaja la IA con tus fotos.</p>
+          </div>
+          <span id="settings-account-badge" class="settings-badge">Modo local</span>
+        </div>
+        <div class="settings-grid">
+          <div class="settings-field">
+            <label for="setting-display-name">Nombre visible</label>
+            <input id="setting-display-name" type="text" maxlength="40" placeholder="Ej: Isaac" />
+          </div>
+          <div class="settings-field">
+            <label for="setting-protein-goal">Meta de proteinas (g)</label>
+            <input id="setting-protein-goal" type="number" min="0" max="400" step="5" />
+          </div>
+          <div class="settings-field">
+            <label for="setting-theme">Tema de la app</label>
+            <select id="setting-theme">
+              <option value="mint">Menta pro</option>
+              <option value="ocean">Oceano claro</option>
+              <option value="graphite">Grafito limpio</option>
+            </select>
+          </div>
+          <label class="setting-toggle">
+            <input id="setting-auto-analyze" type="checkbox" />
+            <span>
+              <strong>Analizar fotos automaticamente</strong>
+              <small>Al elegir o tomar foto, la IA se ejecuta sin tocar otro boton.</small>
+            </span>
+          </label>
+          <label class="setting-toggle">
+            <input id="setting-reduced-motion" type="checkbox" />
+            <span>
+              <strong>Reducir animaciones</strong>
+              <small>Deja la interfaz mas tranquila si prefieres menos movimiento.</small>
+            </span>
+          </label>
+        </div>
+        <div class="settings-actions">
+          <button id="save-settings-btn" type="button">Guardar configuracion</button>
+          <button id="export-data-btn" type="button" class="ghost">Exportar datos</button>
+          <button id="reset-data-btn" type="button" class="danger">Borrar datos locales</button>
         </div>
       </section>
 
@@ -238,6 +286,6 @@
       </li>
     </template>
 
-    <script type="module" src="./app.js?v=11"></script>
+    <script type="module" src="./app.js?v=12"></script>
   </body>
 </html>

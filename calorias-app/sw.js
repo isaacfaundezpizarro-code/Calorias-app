@@ -1,9 +1,9 @@
-const CACHE_NAME = "caloria-app-v11";
+const CACHE_NAME = "caloria-app-v12";
 const ASSETS = [
   "./",
   "./index.html",
-  "./app.js?v=11",
-  "./styles.css?v=11",
+  "./app.js?v=12",
+  "./styles.css?v=12",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
